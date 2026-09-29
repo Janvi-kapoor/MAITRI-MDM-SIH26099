@@ -1,24 +1,99 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
+import { Activity, ArrowRight, BadgeCheck, Ban, BarChart3, Check, CheckCircle2, ChevronRight, CircleAlert, Clock3, Database, FileCheck2, FileSearch, Filter, Gauge, GitBranch, Layers3, MoreHorizontal, Plus, RefreshCw, Search, Server, ShieldCheck, Sparkles, TrendingUp, Upload, Users, X, XCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { StatusPill } from "@/components/status-pill";
+import { auditEvents, mappings, metrics, queue, scenarios, type ScenarioKey } from "@/lib/demo-data";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
+type View = "command" | "intake" | "validation" | "governance" | "identity" | "signals" | "audit" | "health";
 export const Route = createFileRoute("/")({
+  validateSearch: (search: Record<string, unknown>): { view: View } => ({
+    view: (["command", "intake", "validation", "governance", "identity", "signals", "audit", "health"].includes(String(search.view)) ? search.view : "command") as View,
+  }),
+  head: () => ({ meta: [
+    { title: "Command Center — MAITRI-MDM" },
+    { name: "description", content: "Enterprise material identity governance command center for CPSE reconciliation." },
+    { property: "og:title", content: "MAITRI-MDM Command Center" },
+    { property: "og:description", content: "AI discovers candidates. Engineering proves compatibility. Human governance decides." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
 function Index() {
-  return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
-  );
+  const { view } = Route.useSearch();
+  const navigate = useNavigate({ from: "/" });
+  const go = (next: View) => navigate({ search: { view: next } });
+  if (view === "intake" || view === "validation" || view === "governance") return <Workflow view={view} go={go} />;
+  if (view === "identity") return <IdentityPage />;
+  if (view === "signals") return <SignalsPage />;
+  if (view === "audit") return <AuditPage />;
+  if (view === "health") return <HealthPage />;
+  return <CommandCenter go={go} />;
 }
+
+function PageHead({ eyebrow, title, description, actions }: { eyebrow: string; title: string; description: string; actions?: React.ReactNode }) {
+  return <div className="page-head"><div><span className="eyebrow">{eyebrow}</span><h1>{title}</h1><p>{description}</p></div>{actions && <div className="page-actions">{actions}</div>}</div>;
+}
+
+function CommandCenter({ go }: { go: (view: View) => void }) {
+  return <div className="page animate-in">
+    <PageHead eyebrow="National material identity network" title="Command Center" description="Operational control for governed material identities across participating CPSEs." actions={<><Button variant="secondary"><Upload size={16}/> Import records</Button><Button onClick={() => go("intake")}><Plus size={16}/> New material request</Button></>} />
+    <section className="principle-strip"><div className="principle-icon"><GitBranch /></div><div><strong>Find → Prove → Govern</strong><span>AI discovers candidates. Engineering proves compatibility. Human governance decides.</span></div><p>Similarity is a candidate — not a decision.</p></section>
+    <section className="metric-grid">{metrics.map((m, i) => <article className="metric-card" key={m.label}><div className={`metric-icon tone-${m.tone}`}>{[Database, FileSearch, CircleAlert, BadgeCheck][i]({ size: 19 })}</div><span>{m.label}</span><strong>{m.value}</strong><small>{m.change}</small></article>)}</section>
+    <div className="dashboard-grid">
+      <section className="panel queue-panel"><div className="panel-head"><div><h2>Priority review queue</h2><p>Items requiring human attention</p></div><button className="text-action" onClick={() => go("governance")}>View all <ArrowRight size={14}/></button></div>
+        <div className="table-wrap"><table><thead><tr><th>Request</th><th>Material</th><th>CPSE</th><th>Stage</th><th>Age</th><th>Status</th><th></th></tr></thead><tbody>{queue.map((q) => <tr key={q.id}><td className="mono">{q.id}</td><td><strong>{q.material}</strong></td><td>{q.cpse}</td><td>{q.stage}</td><td>{q.age}</td><td><StatusPill tone={q.risk === "Conflict" ? "red" : q.risk === "Review" ? "amber" : "green"}>{q.risk}</StatusPill></td><td><Button variant="ghost" size="icon" aria-label={`Open ${q.id}`} onClick={() => go("validation")}><ChevronRight size={16}/></Button></td></tr>)}</tbody></table></div>
+      </section>
+      <aside className="panel activity-panel"><div className="panel-head"><div><h2>Network activity</h2><p>Last 24 hours</p></div><Activity size={18}/></div><div className="stacked-stat"><div><span>ONGC</span><strong>38%</strong></div><i><b className="bar-38" /></i></div><div className="stacked-stat"><div><span>IOCL</span><strong>27%</strong></div><i><b className="bar-27" /></i></div><div className="stacked-stat"><div><span>BPCL</span><strong>21%</strong></div><i><b className="bar-21" /></i></div><div className="stacked-stat"><div><span>Other CPSEs</span><strong>14%</strong></div><i><b className="bar-14" /></i></div><div className="activity-total"><span>Processed today</span><strong>426</strong><small>Across 6 approved sources</small></div></aside>
+    </div>
+    <div className="dashboard-lower">
+      <section className="panel"><div className="panel-head"><div><h2>Recent governed decisions</h2><p>Evidence-backed approvals and holds</p></div><Button variant="ghost" size="icon" aria-label="More options"><MoreHorizontal/></Button></div>{auditEvents.slice(0,3).map((e, i)=><div className="decision-row" key={e.time}><span className={`decision-dot ${i===2?"dot-blue":"dot-green"}`}>{i===2?<Search/>:<Check/>}</span><div><strong>{e.action}</strong><p>{e.material} · {e.user}</p></div><StatusPill tone={i===2?"blue":"green"}>{e.decision}</StatusPill><time>{e.time}</time></div>)}</section>
+      <section className="panel"><div className="panel-head"><div><h2>Platform status</h2><p>Prototype connector health</p></div><StatusPill tone="green">All systems normal</StatusPill></div><div className="health-list"><div><span><Server/>Candidate index</span><strong><i/> Operational</strong></div><div><span><Layers3/>Engineering rules</span><strong><i/> Operational</strong></div><div><span><Database/>ERP connectors</span><strong className="status-warn"><i/> Mock mode</strong></div></div><Button variant="secondary" onClick={() => go("health")}>View resilience simulation <ArrowRight size={15}/></Button></section>
+    </div>
+  </div>;
+}
+
+function Workflow({ view, go }: { view: View; go: (view: View) => void }) {
+  const [scenario, setScenario] = useState<ScenarioKey>("match");
+  const [maker, setMaker] = useState(false);
+  const [checker, setChecker] = useState(false);
+  const [searched, setSearched] = useState(view !== "intake");
+  const data = scenarios[scenario];
+  const active = maker && checker && scenario === "match";
+  const attributes = Object.keys(data.requested) as Array<keyof typeof data.requested>;
+  const isMismatch = (key: keyof typeof data.requested) => data.requested[key] !== data.candidate[key];
+  const selectScenario = (key: ScenarioKey) => { setScenario(key); setMaker(false); setChecker(false); setSearched(view !== "intake"); };
+  const phase = view === "intake" && !searched ? 1 : view === "governance" ? 3 : 2;
+  return <div className="page animate-in">
+    <PageHead eyebrow="Pre-create guardrail · MR-2026-1842" title={phase === 1 ? "New Material Request" : phase === 2 ? "Engineering Proof" : "Governance Decision"} description="Validate against the approved identity index before local ERP master creation." actions={<StatusPill tone="blue">Deterministic fallback active</StatusPill>} />
+    <div className="stepper"><span className={phase>=1?"done":""}><b>1</b> Material intake</span><i/><span className={phase>=2?"done":""}><b>2</b> Find candidates</span><i/><span className={phase>=2?"done":""}><b>3</b> Engineering proof</span><i/><span className={phase>=3?"done":""}><b>4</b> Govern</span></div>
+    <section className="scenario-bar"><div><Sparkles/><span><strong>Judge demo scenarios</strong><small>Load a verified test case</small></span></div><div className="scenario-buttons">{(Object.keys(scenarios) as ScenarioKey[]).map(k=><button key={k} className={scenario===k?"active":""} onClick={()=>selectScenario(k)}>{scenarios[k].label}</button>)}</div></section>
+    {phase === 1 ? <IntakeForm data={data.requested} onSearch={()=>{setSearched(true); go("validation");}} /> : <>
+      <div className="proof-layout">
+        <section className="panel proof-panel">
+          <div className="candidate-summary"><div><span className="eyebrow">Top governed candidate</span><h2>{data.code}</h2><p>SS304 Seamless Pipe · Approved identity index</p></div><StatusPill tone={scenario==="match"?"indigo":scenario==="review"?"amber":"red"}>{data.status}</StatusPill></div>
+          <div className="comparison-header"><span>Technical attribute</span><span>Requested material</span><span>Candidate identity</span><span>Result</span></div>
+          {attributes.map(key => { const mismatch=isMismatch(key); const missing=data.requested[key]==="Not provided"; return <div className={`comparison-row ${mismatch?"row-alert":""}`} key={key}><span>{key === "uom" ? "UoM" : key[0].toUpperCase()+key.slice(1)}</span><strong>{data.requested[key]}</strong><strong>{data.candidate[key]}</strong><StatusPill tone={missing?"amber":mismatch?"red":"green"}>{missing?"Missing":mismatch?"Different":"Match"}</StatusPill></div>})}
+        </section>
+        <aside className={`verdict ${scenario==="match"?"verdict-good":scenario==="review"?"verdict-review":"verdict-bad"}`}><div className="verdict-icon">{scenario==="match"?<ShieldCheck/>:scenario==="review"?<CircleAlert/>:<Ban/>}</div><span className="eyebrow">Rules engine verdict</span><h2>{scenario==="match"?"Technically compatible candidate":scenario==="review"?"Review required":"No safe match"}</h2><p>{scenario==="match"?"All required engineering attributes are compatible. Human approval is still required.":scenario==="review"?"Schedule is required for a safe engineering decision. Send to an engineer for correction.":"Critical technical attribute conflict detected. High similarity cannot override engineering rules."}</p><div className="rule-note"><strong>{data.recommendation}</strong><span>Recommendation only · No automatic decision</span></div>{scenario==="match"?<Button onClick={()=>go("governance")}>Continue to governance <ArrowRight size={16}/></Button>:scenario==="review"?<Button variant="secondary">Send to engineer</Button>:<Button variant="danger">Candidate blocked <X size={16}/></Button>}</aside>
+      </div>
+      {phase === 3 && <section className="governance-panel panel"><div className="panel-head"><div><h2>Maker–checker approval</h2><p>Identity activates only after both human decisions</p></div><StatusPill tone={active?"green":"amber"}>{active?"Identity active":"Approval in progress"}</StatusPill></div><div className="approval-flow"><article className={maker?"approved":""}><span>1</span><div><small>Engineer / Maker</small><strong>{maker?"Technical proof approved":"Awaiting technical approval"}</strong><p>R. Iyer · Senior Materials Engineer</p></div><Button variant={maker?"secondary":"primary"} onClick={()=>setMaker(!maker)}>{maker?<><Check/> Approved</>:"Approve technical proof"}</Button></article><ChevronRight/><article className={checker?"approved":""}><span>2</span><div><small>Checker</small><strong>{checker?"Governance approval complete":"Awaiting checker approval"}</strong><p>A. Mehta · National Material Steward</p></div><Button disabled={!maker} variant={checker?"secondary":"primary"} onClick={()=>setChecker(!checker)}>{checker?<><Check/> Approved</>:"Approve mapping"}</Button></article></div>{active&&<div className="activation-banner"><BadgeCheck/><div><strong>IN-MAT-000184 activated</strong><span>Passport, local mapping, and audit timeline updated.</span></div><Button onClick={()=>go("identity")}>Open identity passport <ArrowRight/></Button></div>}</section>}
+    </>}
+  </div>;
+}
+
+function IntakeForm({ data, onSearch }: { data: Record<string,string>; onSearch:()=>void }) {
+  return <div className="intake-layout"><section className="panel form-panel"><div className="panel-head"><div><h2>Material specification</h2><p>Required attributes are checked before candidate retrieval</p></div><StatusPill tone="neutral">Draft</StatusPill></div><div className="form-grid"><label><span>CPSE</span><select defaultValue="ONGC"><option>ONGC</option><option>IOCL</option><option>BPCL</option></select></label><label><span>Local request reference</span><input defaultValue="NMR-ONGC-2026-0418"/></label><label className="wide"><span>Material description</span><input defaultValue="SS304 Seamless Pipe, 2 inch, SCH 40, ASTM A312"/></label>{Object.entries(data).map(([k,v])=><label key={k}><span>{k==="uom"?"UoM":k[0].toUpperCase()+k.slice(1)}</span><input value={v} readOnly /></label>)}</div><div className="form-actions"><span><ShieldCheck/> Checked against approved local snapshot</span><Button onClick={onSearch}><Search size={16}/> Check existing identity</Button></div></section><aside className="panel intake-aside"><div className="aside-icon"><ShieldCheck/></div><span className="eyebrow">Pre-create guardrail</span><h2>Protect the future</h2><p>Every new material request is checked before a new local master is created.</p><ul><li><Check/> Local ERP code remains unchanged</li><li><Check/> Critical attributes override similarity</li><li><Check/> Human approval remains mandatory</li></ul></aside></div>;
+}
+
+function IdentityPage() { return <div className="page animate-in"><PageHead eyebrow="Governed material master" title="Material Identity Passport" description="A traceable national cross-reference with local ERP ownership preserved." actions={<><Button variant="secondary"><FileCheck2/> Export evidence</Button><Button><Plus/> Add local mapping</Button></>} /><section className="passport"><div className="passport-band"><div className="identity-seal"><ShieldCheck/></div><div><span className="eyebrow">National material identity</span><h2>IN-MAT-000184</h2><p>SS304 Seamless Pipe</p></div><StatusPill tone="green">Active · v3.2</StatusPill></div><div className="passport-spec"><div><span>Canonical specification</span><strong>2 inch · SCH 40 · ASTM A312</strong></div><div><span>Category</span><strong>PIPE</strong></div><div><span>Unit of measure</span><strong>EA</strong></div><div><span>Criticality</span><strong>Medium</strong></div><div><span>Technical basis</span><strong>Verified</strong></div><div><span>Governance</span><strong>Maker + Checker approved</strong></div></div><div className="ownership-note"><Network/><div><strong>National identity is a governed cross-reference.</strong><span>Local ERP codes remain unchanged.</span></div></div></section><section className="panel mappings-panel"><div className="panel-head"><div><h2>Local ERP mappings</h2><p>Approved source references linked to this identity</p></div><StatusPill tone="blue">3 verified references</StatusPill></div><div className="mapping-grid">{mappings.map(m=><article key={m.cpse}><div className="cpse-mark">{m.cpse.slice(0,2)}</div><div><span>{m.cpse}</span><strong>{m.code}</strong><p>{m.description}</p></div><StatusPill tone="green">{m.status}</StatusPill></article>)}</div></section><Lineage /></div> }
+
+function Lineage() { const events=["Source record","Normalized","Candidate retrieved","Technical proof","Maker approved","Checker approved","Identity active"]; return <section className="panel lineage"><div className="panel-head"><div><h2>Evidence lineage</h2><p>Reconstructable decision path · 29 Sep 2026</p></div><Button variant="secondary">View evidence pack</Button></div><div className="lineage-flow">{events.map((e,i)=><div key={e}><span className={i===events.length-1?"current":""}>{i===events.length-1?<BadgeCheck/>:<Check/>}</span><strong>{e}</strong><small>{`14:${16+i*3}`}</small></div>)}</div></section> }
+
+function SignalsPage() { return <div className="page animate-in"><PageHead eyebrow="Decision support" title="Demand & Stock Signals" description="Identity-linked operational signals for informed CPSE decisions." actions={<Button variant="secondary"><Filter/> Filter network</Button>} /><div className="signal-banner"><TrendingUp/><div><strong>Opportunity signal — not an automatic PO</strong><span>Procurement authority remains with the respective CPSE.</span></div></div><section className="panel opportunity"><div className="panel-head"><div><h2>IN-MAT-000184 · Network demand</h2><p>SS304 Seamless Pipe · 2 inch · SCH 40</p></div><div className="big-total"><span>Combined signal</span><strong>640 EA</strong></div></div><div className="demand-grid"><article><span>ONGC</span><strong>340 <small>EA</small></strong><i><b className="demand-53"/></i><p>Required within 90 days</p></article><article><span>IOCL</span><strong>120 <small>EA</small></strong><i><b className="demand-19"/></i><p>Planning signal</p></article><article><span>BPCL</span><strong>180 <small>EA</small></strong><i><b className="demand-28"/></i><p>Approved forecast</p></article></div></section><section className="panel"><div className="panel-head"><div><h2>Relevant local holdings</h2><p>Potential holding signals requiring CPSE eligibility checks</p></div><StatusPill tone="amber">Review required</StatusPill></div><div className="eligibility-grid">{["Policy","Quantity","Quality","Safety","Shelf life"].map((x,i)=><div key={x}><span className={i<3?"check-good":"check-review"}>{i<3?<Check/>:<Clock3/>}</span><strong>{x}</strong><small>{i<3?"Eligible":"CPSE review"}</small></div>)}</div></section></div> }
+
+function AuditPage() { return <div className="page animate-in"><PageHead eyebrow="Evidence and control" title="Audit & Lineage" description="Immutable-style prototype history for every material decision." actions={<><Button variant="secondary"><Filter/> Filter</Button><Button><FileCheck2/> Export log</Button></>} /><section className="panel audit-panel"><div className="panel-head"><div><h2>Decision event stream</h2><p>Showing synthetic events for IN-MAT-000184</p></div><StatusPill tone="blue">Evidence complete</StatusPill></div><div className="table-wrap"><table><thead><tr><th>Time</th><th>User</th><th>Role</th><th>Action</th><th>Material</th><th>Decision</th></tr></thead><tbody>{auditEvents.map(e=><tr key={e.time}><td className="mono">{e.time}</td><td><strong>{e.user}</strong></td><td>{e.role}</td><td>{e.action}</td><td className="mono">{e.material}</td><td><StatusPill tone={e.decision==="Approved"||e.decision==="Verified"?"green":"blue"}>{e.decision}</StatusPill></td></tr>)}</tbody></table></div></section><Lineage /></div> }
+
+function HealthPage() { const [mode,setMode]=useState<"normal"|"degraded"|"restored">("normal"); const steps=mode==="normal"?["Search","Approved local index","Validation","Ranking","Continue"]:mode==="degraded"?["Approved snapshot","Freshness check","Validation","Review queue"]:["Connectivity restored","Reconcile","Govern","Resume sync"]; return <div className="page animate-in"><PageHead eyebrow="Prototype resilience simulation" title="System Health" description="Demonstrates governed fallback behavior when search services are unavailable." actions={<StatusPill tone={mode==="degraded"?"amber":"green"}>{mode==="normal"?"All systems normal":mode==="degraded"?"Degraded mode":"Connectivity restored"}</StatusPill>} /><section className="health-hero panel"><div className="mode-tabs"><button className={mode==="normal"?"active":""} onClick={()=>setMode("normal")}>Normal</button><button className={mode==="degraded"?"active":""} onClick={()=>setMode("degraded")}>Degraded</button><button className={mode==="restored"?"active":""} onClick={()=>setMode("restored")}>Restored</button></div><div className="system-flow">{steps.map((s,i)=><div key={s}><span>{i+1}</span><strong>{s}</strong>{i<steps.length-1&&<ArrowRight/>}</div>)}</div><div className={`system-explanation ${mode}`}><Gauge/><div><strong>{mode==="normal"?"Approved services available":mode==="degraded"?"Safe local fallback engaged":"Durable queue reconciliation"}</strong><span>{mode==="normal"?"Candidate retrieval uses semantic and structured search.":mode==="degraded"?"A freshness-checked snapshot supports validation; uncertain cases are held.":"Queued decisions are reconciled before normal operation resumes."}</span></div></div></section><div className="system-grid">{["Candidate index","Approved snapshot","Engineering rules","Audit event store"].map((x,i)=><article className="panel" key={x}><span className="system-icon">{i===0?<Search/>:i===1?<Database/>:i===2?<ShieldCheck/>:<FileClock/>}</span><div><strong>{x}</strong><p>{mode==="degraded"&&i===0?"Unavailable — fallback active":"Operational"}</p></div><StatusPill tone={mode==="degraded"&&i===0?"red":"green"}>{mode==="degraded"&&i===0?"Offline":"Healthy"}</StatusPill></article>)}</div><p className="prototype-note"><CircleAlert/> This is a prototype simulation, not a production disaster-recovery claim.</p></div> }

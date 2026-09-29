@@ -7,7 +7,7 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import React, { useEffect, type ReactNode } from "react";
 import { AlertTriangle, Bell, BookOpenCheck, Boxes, ChevronDown, CircleGauge, Database, FileClock, HeartPulse, Menu, Network, Search, ShieldCheck, Sparkles, X } from "lucide-react";
 
 import appCss from "../styles.css?url";

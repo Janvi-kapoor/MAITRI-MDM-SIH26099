@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Activity, ArrowRight, BadgeCheck, Ban, BarChart3, Check, CheckCircle2, ChevronRight, CircleAlert, Clock3, Database, FileCheck2, FileSearch, Filter, Gauge, GitBranch, Layers3, MoreHorizontal, Plus, RefreshCw, Search, Server, ShieldCheck, Sparkles, TrendingUp, Upload, Users, X, XCircle } from "lucide-react";
+import { Activity, ArrowRight, BadgeCheck, Ban, Check, ChevronRight, CircleAlert, Clock3, Database, FileCheck2, FileClock, FileSearch, Filter, Gauge, GitBranch, Layers3, MoreHorizontal, Network, Plus, Search, Server, ShieldCheck, Sparkles, TrendingUp, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StatusPill } from "@/components/status-pill";
 import { auditEvents, mappings, metrics, queue, scenarios, type ScenarioKey } from "@/lib/demo-data";
@@ -8,7 +8,7 @@ import { auditEvents, mappings, metrics, queue, scenarios, type ScenarioKey } fr
 type View = "command" | "intake" | "validation" | "governance" | "identity" | "signals" | "audit" | "health";
 export const Route = createFileRoute("/")({
   validateSearch: (search: Record<string, unknown>): { view: View } => ({
-    view: (["command", "intake", "validation", "governance", "identity", "signals", "audit", "health"].includes(String(search.view)) ? search.view : "command") as View,
+    view: (["command", "intake", "validation", "governance", "identity", "signals", "audit", "health"].includes(String(search['view'])) ? search['view'] : "command") as View,
   }),
   head: () => ({ meta: [
     { title: "Command Center — MAITRI-MDM" },
@@ -41,7 +41,7 @@ function CommandCenter({ go }: { go: (view: View) => void }) {
   return <div className="page animate-in">
     <PageHead eyebrow="National material identity network" title="Command Center" description="Operational control for governed material identities across participating CPSEs." actions={<><Button variant="secondary"><Upload size={16}/> Import records</Button><Button onClick={() => go("intake")}><Plus size={16}/> New material request</Button></>} />
     <section className="principle-strip"><div className="principle-icon"><GitBranch /></div><div><strong>Find → Prove → Govern</strong><span>AI discovers candidates. Engineering proves compatibility. Human governance decides.</span></div><p>Similarity is a candidate — not a decision.</p></section>
-    <section className="metric-grid">{metrics.map((m, i) => <article className="metric-card" key={m.label}><div className={`metric-icon tone-${m.tone}`}>{[Database, FileSearch, CircleAlert, BadgeCheck][i]({ size: 19 })}</div><span>{m.label}</span><strong>{m.value}</strong><small>{m.change}</small></article>)}</section>
+    <section className="metric-grid">{metrics.map((m, i) => { const MetricIcon = [Database, FileSearch, CircleAlert, BadgeCheck][i] ?? Database; return <article className="metric-card" key={m.label}><div className={`metric-icon tone-${m.tone}`}><MetricIcon size={19} /></div><span>{m.label}</span><strong>{m.value}</strong><small>{m.change}</small></article> })}</section>
     <div className="dashboard-grid">
       <section className="panel queue-panel"><div className="panel-head"><div><h2>Priority review queue</h2><p>Items requiring human attention</p></div><button className="text-action" onClick={() => go("governance")}>View all <ArrowRight size={14}/></button></div>
         <div className="table-wrap"><table><thead><tr><th>Request</th><th>Material</th><th>CPSE</th><th>Stage</th><th>Age</th><th>Status</th><th></th></tr></thead><tbody>{queue.map((q) => <tr key={q.id}><td className="mono">{q.id}</td><td><strong>{q.material}</strong></td><td>{q.cpse}</td><td>{q.stage}</td><td>{q.age}</td><td><StatusPill tone={q.risk === "Conflict" ? "red" : q.risk === "Review" ? "amber" : "green"}>{q.risk}</StatusPill></td><td><Button variant="ghost" size="icon" aria-label={`Open ${q.id}`} onClick={() => go("validation")}><ChevronRight size={16}/></Button></td></tr>)}</tbody></table></div>

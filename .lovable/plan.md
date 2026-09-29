@@ -8,7 +8,7 @@ Build a polished, responsive material-governance application for the SIH judge d
 - Make the Command Center the first screen, with actionable operating metrics, review queues, recent decisions, CPSE distribution, material categories, and system status.
 - Build the complete interactive journey: material intake → candidate retrieval → engineering proof → maker-checker governance → active Material Identity Passport → evidence and lineage.
 - Include one-click demo scenarios for successful match, critical schedule conflict, missing attribute review, and no suitable candidate.
-- Add focused workspaces for Source Systems, Demand Opportunity, Stock Review, Audit & Lineage, and System Health.
+- Add concise supporting decision views for demand, audit, and resilience; keep secondary modules lightweight rather than overbuilding them.
 - Ensure all navigation and primary actions work, with realistic synthetic data and clear prototype/demo labels.
 
 ## Visual direction
@@ -18,7 +18,7 @@ Build a polished, responsive material-governance application for the SIH judge d
 - Adapt the shell, tables, comparisons, drawers, and forms for tablet and mobile without merely shrinking desktop layouts.
 
 ## Technical details
-- Keep the experience frontend-only with deterministic local matching and in-memory React state; no API key or backend is required.
+- Keep the experience frontend-only with deterministic local matching and in-memory React state; implement graceful fallback behavior without requiring any external AI key.
 - Use TanStack Router routes for each major workspace and shared application chrome at the root.
 - Centralize synthetic material records and workflow logic so every page reflects the same decisions and identity state.
 - Add route-specific titles and descriptions, then verify the full judge flow and responsive rendering in the live preview.

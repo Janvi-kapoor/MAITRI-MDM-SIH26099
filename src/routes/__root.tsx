@@ -134,15 +134,15 @@ function RootComponent() {
           <div className="tenant-panel"><span className="tenant-logo">N</span><div><strong>National CPSE Network</strong><span>Prototype workspace</span></div><ChevronDown size={14} /></div>
           <nav className="sidebar-nav" aria-label="Primary navigation">
             <span className="nav-label">Workspace</span>
-            <Link to="/" search={{ view: "command" }} activeOptions={{ exact: true }} onClick={() => setMobileOpen(false)}><CircleGauge /><span>Command Center</span></Link>
-            <Link to="/" search={{ view: "intake" }} onClick={() => setMobileOpen(false)}><Sparkles /><span>Material Intake</span><b>4</b></Link>
-            <Link to="/" search={{ view: "validation" }} onClick={() => setMobileOpen(false)}><BookOpenCheck /><span>Engineering Proof</span><b>12</b></Link>
-            <Link to="/" search={{ view: "governance" }} onClick={() => setMobileOpen(false)}><ShieldCheck /><span>Governance</span><b>7</b></Link>
-            <Link to="/" search={{ view: "identity" }} onClick={() => setMobileOpen(false)}><Boxes /><span>Material Identity</span></Link>
+            <Link to="/" search={{ view: "command" }} activeOptions={{ exact: true, includeSearch: true }} onClick={() => setMobileOpen(false)}><CircleGauge /><span>Command Center</span></Link>
+            <Link to="/" search={{ view: "intake" }} activeOptions={{ exact: true, includeSearch: true }} onClick={() => setMobileOpen(false)}><Sparkles /><span>Material Intake</span><b>4</b></Link>
+            <Link to="/" search={{ view: "validation" }} activeOptions={{ exact: true, includeSearch: true }} onClick={() => setMobileOpen(false)}><BookOpenCheck /><span>Engineering Proof</span><b>12</b></Link>
+            <Link to="/" search={{ view: "governance" }} activeOptions={{ exact: true, includeSearch: true }} onClick={() => setMobileOpen(false)}><ShieldCheck /><span>Governance</span><b>7</b></Link>
+            <Link to="/" search={{ view: "identity" }} activeOptions={{ exact: true, includeSearch: true }} onClick={() => setMobileOpen(false)}><Boxes /><span>Material Identity</span></Link>
             <span className="nav-label nav-gap">Intelligence & control</span>
-            <Link to="/" search={{ view: "signals" }} onClick={() => setMobileOpen(false)}><Database /><span>Demand & Stock</span></Link>
-            <Link to="/" search={{ view: "audit" }} onClick={() => setMobileOpen(false)}><FileClock /><span>Audit & Lineage</span></Link>
-            <Link to="/" search={{ view: "health" }} onClick={() => setMobileOpen(false)}><HeartPulse /><span>System Health</span></Link>
+            <Link to="/" search={{ view: "signals" }} activeOptions={{ exact: true, includeSearch: true }} onClick={() => setMobileOpen(false)}><Database /><span>Demand & Stock</span></Link>
+            <Link to="/" search={{ view: "audit" }} activeOptions={{ exact: true, includeSearch: true }} onClick={() => setMobileOpen(false)}><FileClock /><span>Audit & Lineage</span></Link>
+            <Link to="/" search={{ view: "health" }} activeOptions={{ exact: true, includeSearch: true }} onClick={() => setMobileOpen(false)}><HeartPulse /><span>System Health</span></Link>
           </nav>
           <div className="sidebar-principle"><ShieldCheck size={18} /><div><strong>Human-governed decisions</strong><span>Similarity is a candidate — not a decision.</span></div></div>
           <div className="user-card"><div className="avatar">AK</div><div><strong>Arjun Khanna</strong><span>National Material Steward</span></div><ChevronDown size={14} /></div>
